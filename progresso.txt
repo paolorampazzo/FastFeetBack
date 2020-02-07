@@ -1,0 +1,32 @@
+yarn init -y
+
+yarn add express
+
+criar pasta src
+criar app, server e routes.js
+
+utilizar o sucrase para utilizar import
+yarn add sucrase nodemon -D
+
+adicionar nos scripts no package.json para rodar o nodemon sucrase
+e junto a isso, para que funcione o sucrase, criamos o nodemon.json
+
+Primeiro commit
+
+docker run --name desafio -e POSTGRES_PASSWORD=desafio -p 5432:5432 -d postgres
+
+parar acessar no postbird:
+usuario postgres
+senha desafio
+
+criei banco de dados fastfeet no postbird
+
+Criei o arquivo database na pasta config
+Criei o arquivo index na pasta database
+Criar a pasta migrations
+Colocar o .rcsequelizerc
+Instalar sequelize
+yarn add sequelize-cli -D
+
+Segundo commit
+
