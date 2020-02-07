@@ -26,7 +26,22 @@ Criei o arquivo index na pasta database
 Criar a pasta migrations
 Colocar o .rcsequelizerc
 Instalar sequelize
+
+yarn add sequelize
 yarn add sequelize-cli -D
+yarn add pg pg-hstore
 
 Segundo commit
 
+Criando a migration de usuarios
+yarn sequelize migration:create --name=create-users
+Criei a migration de usuario de acordo com o modelo do git do seeds que ele da
+
+yarn sequelize db:migrate
+
+yarn add bcryptjs
+yarn sequelize seed:generate --name admin-user
+
+yarn sequelize db:seed:all
+
+Terceiro commit

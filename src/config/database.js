@@ -5,7 +5,7 @@ module.exports = {
   host: "localhost",
   username: "postgres",
   password: "desafio",
-  database: "desafio",
+  database: "fastfeet",
   define: {
     timestamps: true, // Padronizacao de preenchimento de coluna created at e updated at em cada coluna do banco de dados.
     underscored: true,
