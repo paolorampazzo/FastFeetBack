@@ -1,8 +1,10 @@
 // Realiza a conexao com o banco de dados e carrega nossos models
-import Sequelize from "sequelize";
-import databaseConfig from "../config/database";
+import Sequelize from 'sequelize';
+import databaseConfig from '../config/database';
 
-const models = [];
+import User from '../app/models/User';
+
+const models = [User];
 
 class Database {
   constructor() {
@@ -12,10 +14,7 @@ class Database {
   init() {
     // Conexao com o banco de dados
     this.connection = new Sequelize(databaseConfig);
-    // Carrega os models
     models.map(model => model.init(this.connection));
-    //.map(model => model.associate && model.associate(this.connection.models));
-    // Soh vai executar o segundo map se o model tiver a funcao associate
   }
 }
 

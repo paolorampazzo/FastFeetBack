@@ -5,6 +5,10 @@ yarn add express
 criar pasta src
 criar app, server e routes.js
 
+criar o editorconfig
+yarn add eslint prettier eslint-config-prettier eslint-plugin-prettier babel-eslint -D
+yarn eslint --init
+
 utilizar o sucrase para utilizar import
 yarn add sucrase nodemon -D
 
@@ -22,7 +26,6 @@ senha desafio
 criei banco de dados fastfeet no postbird
 
 Criei o arquivo database na pasta config
-Criei o arquivo index na pasta database
 Criar a pasta migrations
 Colocar o .rcsequelizerc
 Instalar sequelize
@@ -45,3 +48,29 @@ yarn sequelize seed:generate --name admin-user
 yarn sequelize db:seed:all
 
 Terceiro commit
+
+Criar pasta app
+Criar pasta controllers
+Criar pasta models
+
+Criamos o User.js
+Criamos o index na pasta database para conseguir fazer a conexao do model com o database
+importar models no index js criado acima
+
+import database no app.js
+
+Crio uma rota no routes pra testar se o model esta funcionando
+Testamos a rota e ainda podemos ver que foi criado no banco de dados o usuario
+
+Criar o controller de users
+Criar a rota de store no routes
+Testamos no insomnia
+
+Criar verificacao de email unico no controller
+instalar o bcryptjs
+
+Criamos o campo password virtual no model de usuario
+Adicionar o hook no model para criar o password hash
+Testar no insomnia
+
+Quarto Commit
