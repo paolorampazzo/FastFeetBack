@@ -74,3 +74,52 @@ Adicionar o hook no model para criar o password hash
 Testar no insomnia
 
 Quarto Commit
+
+Criar autenticacao
+Criar o controller SessionController
+yarn add jsonwebtoken
+Verificar se userexists no controller
+
+Colocar a verificacao da senha dentro do model de usuario , pois nao eh uma regra de negocio, eh apenas
+uma verificacao de senha
+
+Retornar do sessioncontroller store o jwt junto com os dados de login
+jwt = header(algoritmo utilizado para gerar este jwt).payload(pode conter dados nao sensiveis, tipo id e email).assinatura
+
+jwd.sign(a,b, c)// payload, texto unico em toads as aplicacoes do universo md5online, informacoes
+extras, tipo expiracao
+
+Digitei paoloappfastfeedrocketseat
+
+Criar a rota no routes
+Criar o auth no config para separar a configuracao do jwt
+fazer a importacao
+
+Criar middleware de autenticacao
+Criar pasta middleware e auth.js
+
+Criar um metodo update no usuario simplesmente retornando ok
+Criar a rota
+
+Criar no insomnia uma requisicao de put com o Bearer no Header ou colocando autorhizaton
+Terminar o middleware de auth e importar no routes
+
+Jwt.verify tem as versos sincrona e assincrona
+Mas a assincrona ela ainda utiliza callbacks
+Com isso, utilizamos o promisify, que torna possivel a utilizacao de async e await para
+funcoces que utilizam callbacks
+Nao esquecer de deixasr o middleware async
+
+Colocamos o userId no req, pois desta forma, todas as proximas requisicoes vao conter o id
+do usuario, e com isso, saberemos que ele esta logado
+Por exemplo, no caso de update, nao precisara enviar as informacoes de quem ele quer alterar,
+ja que ele soh pode alterar ele mesmo.
+
+Terminar o controller user update
+
+yarn add yup
+
+Fazer validacao no user controller para store e update
+Podemos fazer tambem para o session, mas nao fiz
+
+Quinto commit
