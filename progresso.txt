@@ -127,3 +127,11 @@ Quinto commit
 Fiz a validacao pro SessionController
 
 Sexto commit
+
+yarn sequelize migration:create --name=create-recipients
+
+yarn sequelize db:migrate
+
+Pronto, criei a tabela de recipients
+
+Setimo Commit
