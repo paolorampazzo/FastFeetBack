@@ -123,3 +123,7 @@ Fazer validacao no user controller para store e update
 Podemos fazer tambem para o session, mas nao fiz
 
 Quinto commit
+
+Fiz a validacao pro SessionController
+
+Sexto commit

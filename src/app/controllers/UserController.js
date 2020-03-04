@@ -83,6 +83,10 @@ class UserController {
       email,
     });
   }
+
+  async delete() {}
+
+  async index() {}
 }
 
 export default new UserController();
