@@ -29,53 +29,53 @@ class RecipientController {
   async update(req, res) {
     // Validacao de schema
     const schema = Yup.object().shape({
+      id: Yup.number(),
       name: Yup.string(),
-      email: Yup.string().email(),
-      oldPassword: Yup.string().min(6),
-      password: Yup.string()
-        .min(6)
-        .when('oldPassword', (oldPassword, field) =>
-          oldPassword ? field.required() : field
-        ),
-      confirmPassword: Yup.string().when('password', (password, field) =>
-        password ? field.required().oneOf([Yup.ref('password')]) : field
-      ),
+      rua: Yup.string(),
+      numero: Yup.number(),
+      complemento: Yup.string(),
+      estado: Yup.string(),
+      cidade: Yup.string(),
+      cep: Yup.string(),
     });
 
     if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ error: 'Erro de Validacao' });
     }
 
-    const { email, oldPassword } = req.body;
+    const user = await Recipient.findByPk(req.body.id);
 
-    const user = await User.findByPk(req.userId);
-
-    // Se quer alterar email, ver se nao tem esse email ja cadastrado
-    if (email && email !== user.email) {
-      const userExists = await User.findOne({ where: { email } });
-
-      if (userExists) {
-        return res.status(400).json({ error: 'E-mail ja cadastrado' });
-      }
+    if (!user) {
+      res.status(400).json({ error: 'Usuario nao encontrado' });
     }
 
-    // Verificar se a senha antiga bate
-    if (oldPassword && !(await user.checkPassword(oldPassword))) {
-      return res.status(401).json({ error: 'Senha incorreta' });
-    }
+    const data = await user.update(req.body);
 
-    const { id, name } = await user.update(req.body);
-
-    return res.json({
-      id,
-      name,
-      email,
-    });
+    return res.json(data);
   }
 
-  async delete() {}
+  // Nao havera async delete() {}, pois os usuarios devem
+  // ser mantidos segundo as espeficicacoes
 
-  async index() {}
+  async index(req, res) {
+    const { page = 1 } = req.query;
+
+    // As buscas serao feitas considerando o valor logico E, ou seja,
+    // Devera matchar todas os campos de pesquisa
+    // Podemos controlar no front quais requisicoes devem ser enviadas em caso de um novo cadastro
+
+    const recipients = await Recipient.findAll({
+      where: {
+        ...req.body,
+      },
+      order: ['updated_at'],
+      limit: 10,
+      offset: (page - 1) * 10,
+      attributes: ['id', 'name', 'rua', 'numero', 'cep', 'complemento'],
+    });
+
+    return res.json(recipients);
+  }
 }
 
 export default new RecipientController();

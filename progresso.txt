@@ -135,3 +135,14 @@ yarn sequelize db:migrate
 Pronto, criei a tabela de recipients
 
 Setimo Commit
+
+Criei model e controller de Recipient. Ta incompleto ainda. Mas ja fiz alguns cadastros no banco de dados.
+
+Oitavo Commit
+
+Fiz o metodo get e update do recipient
+Fiz o metodo update do user
+Testei tudo no insomnia
+
+Nono Commit
+

@@ -38,8 +38,8 @@ class UserController {
   }
 
   async update(req, res) {
-    // Validacao de schema
     const schema = Yup.object().shape({
+      // req.body eh um objeto
       name: Yup.string(),
       email: Yup.string().email(),
       oldPassword: Yup.string().min(6),
@@ -47,46 +47,44 @@ class UserController {
         .min(6)
         .when('oldPassword', (oldPassword, field) =>
           oldPassword ? field.required() : field
-        ),
-      confirmPassword: Yup.string().when('password', (password, field) =>
-        password ? field.required().oneOf([Yup.ref('password')]) : field
+        ), // field se refere ao password neste caso
+      confirmPassword: Yup.string().when(
+        'password',
+        (password, field) =>
+          password ? field.required().oneOf([Yup.ref('password')]) : field
+        // Yup ref procura no campo password
       ),
     });
 
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Erro de Validacao' });
+      return res.status(400).json({ error: 'Validation fails' });
     }
 
     const { email, oldPassword } = req.body;
 
-    const user = await User.findByPk(req.userId);
+    const user = await User.findByPk(req.userId); // Primary key
+    // Nao da pra colocar aqui o include para pegar os dados do avatar que ele estah atualizando
+    // Senao vai pegar os dados do avatar anterior
 
-    // Se quer alterar email, ver se nao tem esse email ja cadastrado
-    if (email && email !== user.email) {
+    if (email !== user.email) {
       const userExists = await User.findOne({ where: { email } });
-
+      // Testa se o email que ele quer mudar nao ja esta cadastrado por outra pessoa
       if (userExists) {
-        return res.status(400).json({ error: 'E-mail ja cadastrado' });
+        return res.status(400).json({ error: 'User already exists' });
       }
     }
 
-    // Verificar se a senha antiga bate
     if (oldPassword && !(await user.checkPassword(oldPassword))) {
-      return res.status(401).json({ error: 'Senha incorreta' });
+      return res.status(401).json({ error: 'Password does not match' });
     }
 
-    const { id, name } = await user.update(req.body);
+    const { name } = await user.update(req.body);
 
     return res.json({
-      id,
       name,
       email,
     });
   }
-
-  async delete() {}
-
-  async index() {}
 }
 
 export default new UserController();
