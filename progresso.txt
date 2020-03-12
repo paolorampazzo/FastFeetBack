@@ -144,5 +144,25 @@ Fiz o metodo get e update do recipient
 Fiz o metodo update do user
 Testei tudo no insomnia
 
+
 Nono Commit
 
+Criei banco de dados dos entregadores
+yarn sequelize migration:create --name=create-files
+yarn sequelize migration:create --name=create-couriers
+yarn sequelize db:migrate
+
+db:migrate:undo
+
+Criar o model de File
+Criar o model de entregadores (courier)
+
+Criar o controller de file e de entregadores
+Criamos as rotas
+
+yarn add multer para enviar os arquivos
+criar a pasta temp e o arquivo de config do multer
+
+ta funcionando o upload de fotos ja
+tenho que testar o post de courier e termianr este controller
+ainda tenho que entender como que o avatar vai se relacionar com o courier
