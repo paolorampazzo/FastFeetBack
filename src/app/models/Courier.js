@@ -6,6 +6,7 @@ class Courier extends Model {
       {
         name: Sequelize.STRING,
         email: Sequelize.STRING,
+        isactive: Sequelize.BOOLEAN,
       },
       {
         sequelize,

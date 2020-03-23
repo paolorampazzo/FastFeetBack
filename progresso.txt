@@ -166,3 +166,15 @@ criar a pasta temp e o arquivo de config do multer
 ta funcionando o upload de fotos ja
 tenho que testar o post de courier e termianr este controller
 ainda tenho que entender como que o avatar vai se relacionar com o courier
+
+decimo commit
+consegui entender e fazer o relacionamento do file com o courier
+
+Criei o crud todo do courier, menos o delete
+vamos criar agora uma coluna isActive, pra usar o delete pra deixar o courier inativo
+yarn sequelize migration:create --name=add-isactive-field-to-courier
+yarn migrate
+alterei o model
+
+Pronto, agora o meu crud de courier esta compleot
+e no delete ele coloca o isactive pra falso

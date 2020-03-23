@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+import { Op } from 'sequelize';
 import Courier from '../models/Courier';
 
 class CourierController {
@@ -7,6 +8,7 @@ class CourierController {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
       email: Yup.string().required(),
+      isactive: Yup.boolean(),
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -27,26 +29,35 @@ class CourierController {
   }
 
   async update(req, res) {
-    // Validacao de schema
     const schema = Yup.object().shape({
-      id: Yup.number(),
       name: Yup.string(),
-      rua: Yup.string(),
-      numero: Yup.number(),
-      complemento: Yup.string(),
-      estado: Yup.string(),
-      cidade: Yup.string(),
-      cep: Yup.string(),
+      oldEmail: Yup.string()
+        .email()
+        .required(),
+      email: Yup.string().email(),
+      isactive: Yup.boolean(),
     });
 
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Erro de Validacao' });
+      return res.status(400).json({ error: 'Validation fails' });
     }
 
-    const user = await Recipient.findByPk(req.body.id);
+    const { oldEmail, email } = req.body;
+
+    const user = await Courier.findOne({ where: { email: oldEmail } });
 
     if (!user) {
-      res.status(400).json({ error: 'Usuario nao encontrado' });
+      return res.status(400).json({ error: 'User does not exist' });
+    }
+
+    if (email) {
+      const userExists = await Courier.findOne({
+        where: { email },
+      });
+      // Testa se o email que ele quer mudar nao ja esta cadastrado por outra pessoa
+      if (userExists) {
+        return res.status(400).json({ error: 'User already exists' });
+      }
     }
 
     const data = await user.update(req.body);
@@ -57,22 +68,57 @@ class CourierController {
   async index(req, res) {
     const { page = 1 } = req.query;
 
-    // As buscas serao feitas considerando o valor logico E, ou seja,
-    // Devera matchar todas os campos de pesquisa
-    // Podemos controlar no front quais requisicoes devem ser enviadas em caso de um novo cadastro
+    const { name, isactive = true } = req.body;
 
-    const recipients = await Recipient.findAll({
+    // Fazer chamada api no front-end toda vez que alterar o estado do que esta sendo preenchido
+
+    const recipients = await Courier.findAll({
       where: {
-        ...req.body,
+        name: {
+          [Op.iLike]: `%${name}%`,
+        },
+        isactive,
       },
-      order: ['updated_at'],
-      limit: 10,
-      offset: (page - 1) * 10,
-      attributes: ['id', 'name', 'rua', 'numero', 'cep', 'complemento'],
+      order: [['updated_at', 'DESC']],
+      limit: 5,
+      offset: (page - 1) * 5,
+      attributes: ['id', 'name', 'email', 'isactive'],
     });
 
     return res.json(recipients);
   }
-}
 
+  async delete(req, res) {
+    const schema = Yup.object().shape({
+      email: Yup.string()
+        .email()
+        .required(),
+      confirmEmail: Yup.string()
+        .email()
+        .when('email', (email, field) =>
+          email ? field.required().oneOf([Yup.ref('email')]) : field
+        ),
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ error: 'Validation fails' });
+    }
+
+    const { email } = req.body;
+
+    const user = await Courier.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Usuario nao encontrado' });
+    }
+
+    user.isactive = false;
+
+    const data = await user.save();
+
+    return res.json(data);
+  }
+}
 export default new CourierController();
