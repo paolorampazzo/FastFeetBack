@@ -178,3 +178,22 @@ alterei o model
 
 Pronto, agora o meu crud de courier esta compleot
 e no delete ele coloca o isactive pra falso
+
+Decimo primeiro commit
+
+Gestao de encomendas
+yarn sequelize migration:create --name=create-signatures
+yarn sequelize migration:create --name=create-handouts
+yarn sequelize db:migrate
+
+Criei o model de signature
+Criei o model de handouts
+
+Criei o metodo store do controller de handouts
+Testei no insomnia
+Criei o metodo update do controller handouts (falta a parte de foto)
+
+Estou criando o metodo index no controller handouts
+Criei as asociacoes
+
+Decimo segundo commit

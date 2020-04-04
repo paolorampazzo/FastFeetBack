@@ -8,6 +8,7 @@ import SessionController from './app/controllers/SessionController';
 import RecipientController from './app/controllers/RecipientController';
 import CourierController from './app/controllers/CourierController';
 import FileController from './app/controllers/FileController';
+import HandoutController from './app/controllers/HandoutController';
 
 const routes = new Router();
 const upload = multer(multerConfig);
@@ -37,5 +38,9 @@ routes.get('/couriers/', CourierController.index);
 routes.delete('/couriers/', CourierController.delete);
 
 routes.post('/files', upload.single('file'), FileController.store);
+
+routes.post('/handouts', HandoutController.store);
+routes.put('/handouts/:id', HandoutController.update);
+routes.get('/handouts/', HandoutController.index);
 
 export default routes;

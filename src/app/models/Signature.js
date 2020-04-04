@@ -1,6 +1,6 @@
 import Sequelize, { Model } from 'sequelize';
 
-class File extends Model {
+class Signature extends Model {
   static init(sequelize) {
     super.init(
       {
@@ -9,7 +9,7 @@ class File extends Model {
         url: {
           type: Sequelize.VIRTUAL,
           get() {
-            return `${process.env.APP_URL}/files/${this.path}`;
+            return `${process.env.APP_URL}/signatures/${this.path}`;
           },
         },
       },
@@ -22,4 +22,4 @@ class File extends Model {
   }
 }
 
-export default File;
+export default Signature;

@@ -18,6 +18,8 @@ class Courier extends Model {
 
   static associate(models) {
     this.belongsTo(models.File, { foreignKey: 'avatar_id', as: 'avatar' });
+    // this.hasMany(models.Handout, { foreignKey: 'id', as: 'handout' });
+    // this.hasMany(models.Recipient, { foreignKey: 'id', as: 'recipient' });
   }
   // The A.belongsTo(B) association means that a One-To-One relationship exists between A and B, with the foreign key being defined in the source model (A).
 }
