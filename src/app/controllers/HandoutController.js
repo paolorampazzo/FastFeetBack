@@ -1,9 +1,11 @@
 import * as Yup from 'yup';
-import { parseISO, isBefore, format } from 'date-fns';
+import { parseISO, isBefore, format, isToday } from 'date-fns';
+
 import pt from 'date-fns/locale/pt';
 import Courier from '../models/Courier';
 import Recipient from '../models/Recipient';
 import Handout from '../models/Handout';
+import Signature from '../models/Signature';
 
 // import Mail from '../../lib/Mail'; // Testar o email sem criar template
 import Queue from '../../lib/Queue';
@@ -58,12 +60,25 @@ class HandoutController {
 
     // // Testar email antes de configurar o template e a fila
     const { email: couriermail, name: couriername } = deliverymanExists;
-    const { cidade, name: recipientname } = recipientExists;
+    const {
+      cidade,
+      name: recipientname,
+      rua,
+      estado,
+      numero,
+      complemento,
+      cep,
+    } = recipientExists;
 
     const newdeliver = {
       couriermail,
       couriername,
       cidade,
+      rua,
+      numero,
+      complemento,
+      estado,
+      cep,
       date: data.createdAt,
       recipientname,
       image:
@@ -101,9 +116,8 @@ class HandoutController {
         .required(),
       signature_id: Yup.number().integer(),
       product: Yup.string(),
-      start_date: Yup.date(),
       end_date: Yup.date(),
-      canceled_at: Yup.date(),
+      start_date: Yup.date(),
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -117,13 +131,7 @@ class HandoutController {
       return res.status(400).json({ error: 'The handout id does not exist' });
     }
 
-    const {
-      recipient_id,
-      deliveryman_id,
-      start_date,
-      end_date,
-      canceled_at,
-    } = req.body;
+    const { recipient_id, deliveryman_id } = req.body;
     // Testar se os valores batem
 
     if (recipient_id !== handout.recipient_id) {
@@ -136,56 +144,67 @@ class HandoutController {
         .json({ error: 'The deliveryman id does not match' });
     }
 
+    // Check number of start in the day
+    const maxPerDay = 1;
+    const draws = await Handout.findAll({
+      where: {
+        deliveryman_id,
+      },
+    });
+
+    const drawsToday = draws.filter(item => isToday(item.start_date));
+
+    if (drawsToday.length >= maxPerDay) {
+      return res.status(400).json({
+        error: `You have already achieved the limit of ${maxPerDay} draws for today`,
+      });
+    }
+
     // Check start_date
 
-    if (start_date && isBefore(parseISO(start_date), new Date())) {
+    if (
+      !handout.start_date &&
+      (new Date().getUTCHours() < 11 ||
+        new Date().getUTCHours() >= 22 ||
+        (new Date().getUTCHours() === 21 && new Date().getUTCMinutes() !== 0))
+    ) {
       return res
         .status(400)
-        .json({ error: 'You cannot have a start date before now' });
+        .json({ error: 'Voce so pode iniciar uma entrega entre 8 e 18 hrs' });
     }
 
-    // Check end_date
-
-    if (end_date && isBefore(parseISO(end_date), new Date())) {
-      return res
-        .status(400)
-        .json({ error: 'You cannot have an end date before now' });
+    if (!handout.start_date) {
+      await handout.update({
+        start_date: new Date().toUTCString(),
+      });
+      return res.status(200).json({});
     }
 
-    // Check canceled_at
+    if (!handout.end_date) {
+      if (!req.body.signature_id) {
+        return res
+          .status(400)
+          .json({ error: 'You have not provided a signature id' });
+      }
 
-    if (canceled_at && isBefore(parseISO(canceled_at), handout.start_date)) {
-      return res
-        .status(400)
-        .json({ error: 'You cannot have a start date before the start date' });
+      const signatureExists = await Signature.findByPk(req.body.signature_id);
+      if (!signatureExists) {
+        return res.status(400).json({ error: 'This signature does not exist' });
+      }
+
+      if (handout.canceled_at) {
+        return res
+          .status(400)
+          .json({ error: 'This item has been canceled already' });
+      }
+      await handout.update({
+        end_date: new Date().toUTCString(),
+        signature_id: req.body.signature_id,
+      });
+      return res.status(200).json({});
     }
 
-    // Do not let change the start_date
-
-    if (handout.start_date && start_date) {
-      return res
-        .status(400)
-        .json({ error: 'You cannot change the start date' });
-    }
-
-    // Do not let change the canceled date
-
-    if (handout.canceled_at && canceled_at) {
-      const formattedDate = format(
-        parseISO(canceled_at),
-        "'dia' dd 'de' MMMM', as' H:mm'h'",
-        { locale: pt }
-      );
-
-      return res
-        .status(400)
-        .json({ error: `The item was already canceled on ${formattedDate}` });
-    }
-    await handout.update(req.body);
-
-    const updatedHandout = await Handout.findByPk(id);
-
-    return res.json(updatedHandout);
+    return res.status(400).json({});
   }
 
   async index(req, res) {
@@ -241,7 +260,12 @@ class HandoutController {
 
     // Caso contrario vamos verificar por deliveryman_id ou recipient_id, ou ambos
 
-    const { deliveryman_id, recipient_id } = req.query;
+    const {
+      deliveryman_id,
+      recipient_id,
+      canceled = false,
+      finished = false,
+    } = req.query;
 
     let myWhere = deliveryman_id ? { deliveryman_id } : {};
     myWhere = recipient_id ? { ...myWhere, recipient_id } : myWhere;
@@ -284,7 +308,19 @@ class HandoutController {
       ],
     });
 
-    return res.json(checkHandout);
+    const canceledHandout = checkHandout.filter(
+      item => item.canceled_at !== null
+    );
+
+    const toBeDeliverededHandout = checkHandout
+      .filter(item => item.canceled_at === null)
+      .filter(item => item.date_end === null);
+
+    const finishedHandout = checkHandout.filter(item => item.date_end !== null);
+
+    if (canceled) return res.json(canceledHandout);
+    if (finished) return res.json(finishedHandout);
+    return res.json(toBeDeliverededHandout);
   }
 }
 export default new HandoutController();

@@ -231,6 +231,10 @@ Criei o arquivo queue.js na pasta src
 Criei o script queue
 Tudo certo.. configurei as variaveis pra passar certinho com os nomes certos
 
+13 commit
+
+Criei o model, multerconfig e controller de assinatua e adicionei no index do database
+implantei o limite maximo de 5 no controller de handout
 
 Problemas em aberto
 Terminar o crud de handout
