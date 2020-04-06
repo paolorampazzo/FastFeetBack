@@ -72,13 +72,17 @@ class CourierController {
 
     // Fazer chamada api no front-end toda vez que alterar o estado do que esta sendo preenchido
 
+    const myWhere = name
+      ? {
+          name: {
+            [Op.iLike]: `%${name}%`,
+          },
+          isactive,
+        }
+      : {};
+
     const recipients = await Courier.findAll({
-      where: {
-        name: {
-          [Op.iLike]: `%${name}%`,
-        },
-        isactive,
-      },
+      where: myWhere,
       order: [['updated_at', 'DESC']],
       limit: 5,
       offset: (page - 1) * 5,

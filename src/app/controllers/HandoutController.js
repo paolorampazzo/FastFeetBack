@@ -5,6 +5,10 @@ import Courier from '../models/Courier';
 import Recipient from '../models/Recipient';
 import Handout from '../models/Handout';
 
+// import Mail from '../../lib/Mail'; // Testar o email sem criar template
+import Queue from '../../lib/Queue';
+import NewdeliverMail from '../jobs/NewdeliverMail';
+
 class HandoutController {
   async store(req, res) {
     // Validacao de schema
@@ -51,6 +55,39 @@ class HandoutController {
     }
 
     const data = await Handout.create(req.body);
+
+    // // Testar email antes de configurar o template e a fila
+    const { email: couriermail, name: couriername } = deliverymanExists;
+    const { cidade, name: recipientname } = recipientExists;
+
+    const newdeliver = {
+      couriermail,
+      couriername,
+      cidade,
+      date: data.createdAt,
+      recipientname,
+      image:
+        'https://github.com/Rocketseat/bootcamp-gostack-desafio-03/raw/master/.github/logo.png',
+    };
+
+    await Queue.add(NewdeliverMail.key, {
+      newdeliver,
+    });
+    // await Mail.sendMail({
+    //   to: `${deliveryname} <${deliverymail}>`,
+    //   subject: 'Teste',
+    //   // text: 'Este eh um teste',
+    //   // Agora podemos adicionar o template e as variaveis
+    //   template: 'newdeliver',
+    //   context: {
+    //     barber: deliveryname,
+    //     recipient: recipientname,
+    //     cidade,
+    //     date: data.createdAt,
+    //     image:
+    //       'https://github.com/Rocketseat/bootcamp-gostack-desafio-03/raw/master/.github/logo.png',
+    //   },
+    // });
     return res.json(data);
   }
 

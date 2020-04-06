@@ -197,3 +197,44 @@ Estou criando o metodo index no controller handouts
 Criei as asociacoes
 
 Decimo segundo commit
+
+
+
+Vamos fazer a funcionalidade de enviar email com o cadastro de nova entrega
+yarn add nodemailer
+Criar o config do email
+Colocar as configuracoes do mailtrap
+Vamos criar os templates com nodemailer
+yarn add express-handlebars nodemailer-express-handlebars
+
+Criar a pasta lib com Mail.js
+Testar sem criar template e fila
+Ok
+
+Configurar templates
+Template engine: arquivo html que vao receber variaveis do ndoe
+(handlebars)
+
+Criar pasta views dentro do app
+Testei com os templates
+
+docker run --name fastfeetredis -p 6379:6379 -d -t redis:alpine
+instalar bee queue
+yarn add bee-queue
+
+Criamos o Queue.js na pasta lib
+Criamos a pasta jobs
+Configuramos tudo
+Arrumei o handoutcontroller
+
+Criei o arquivo queue.js na pasta src
+Criei o script queue
+Tudo certo.. configurei as variaveis pra passar certinho com os nomes certos
+
+
+Problemas em aberto
+Terminar o crud de handout
+(o que faco no delete do handoutcontroller ?)
+Controller dos arquivos de assinatura
+
+Como faco pra adicionar imagem estatica no handlebars?
