@@ -1,8 +1,11 @@
 import * as Yup from 'yup';
+import { Op } from 'sequelize';
+import qs from 'qs';
 import { parseISO, isBefore, format, isToday } from 'date-fns';
 
 import pt from 'date-fns/locale/pt';
 import Courier from '../models/Courier';
+import File from '../models/File';
 import Recipient from '../models/Recipient';
 import Handout from '../models/Handout';
 import Signature from '../models/Signature';
@@ -131,7 +134,37 @@ class HandoutController {
       return res.status(400).json({ error: 'The handout id does not exist' });
     }
 
-    const { recipient_id, deliveryman_id } = req.body;
+    const { recipient_id, deliveryman_id, edit = false } = req.body;
+
+    if (edit) {
+      if (req.body.recipient_id) {
+        const newRecipientExists = await Recipient.findByPk(
+          req.body.recipient_id
+        );
+
+        if (!newRecipientExists) {
+          console.log('testee');
+          return res
+            .status(400)
+            .json({ error: 'The recipient id does not exist' });
+        }
+      }
+
+      if (req.body.deliveryman_id) {
+        const newCourierExists = await Courier.findByPk(
+          req.body.deliveryman_id
+        );
+
+        if (!newCourierExists) {
+          return res
+            .status(400)
+            .json({ error: 'The courier id does not exist' });
+        }
+      }
+
+      const editted = await handout.update(req.body);
+      return res.json(editted);
+    }
     // Testar se os valores batem
 
     if (recipient_id !== handout.recipient_id) {
@@ -210,15 +243,18 @@ class HandoutController {
   async index(req, res) {
     // Listar item especifico
 
-    const { page = 1, id } = req.query;
+    const { page = 1 } = req.query;
+
+    const { id } = req.params;
+
+    const maxItems = 5;
 
     // Primeiramente, se for solicitado um id especifico, nem conferimos os deliveryman_id e recipient_id
     // pois quem esta fazendo a requisicao nao precisa conferir se bate (somente no update)
     if (id) {
       const handout = await Handout.findByPk(id, {
-        order: [['start_date', 'DESC']],
-        limit: 10,
-        offset: (page - 1) * 10,
+        order: [['createdAt', 'DESC']],
+
         attributes: [
           'id',
           'start_date',
@@ -234,6 +270,10 @@ class HandoutController {
             model: Courier,
             as: 'courier',
             attributes: ['id', 'name', 'email', 'isactive'],
+            include: {
+              model: File,
+              as: 'avatar',
+            },
           },
           {
             model: Recipient,
@@ -248,6 +288,11 @@ class HandoutController {
               'cidade',
               'cep',
             ],
+          },
+          {
+            model: Signature,
+            as: 'signature',
+            attributes: ['id', 'path', 'url'],
           },
         ],
       });
@@ -265,16 +310,59 @@ class HandoutController {
       recipient_id,
       canceled = false,
       finished = false,
+      all = false,
+      produto,
     } = req.query;
 
-    let myWhere = deliveryman_id ? { deliveryman_id } : {};
-    myWhere = recipient_id ? { ...myWhere, recipient_id } : myWhere;
+    let myWhere = produto
+      ? {
+          product: {
+            [Op.iLike]: `%${produto}%`,
+          },
+        }
+      : {};
+
+    const problemIds = req.query.problemIds
+      ? JSON.parse(req.query.problemIds)
+      : [];
+
+    myWhere =
+      problemIds.length === 0
+        ? myWhere
+        : {
+            ...myWhere,
+            id: {
+              [Op.in]: problemIds,
+            },
+          };
+
+    const show = !all ? maxItems : null;
+    const offset = !all ? (page - 1) * maxItems : 0;
+
+    if (deliveryman_id) {
+      const myhandouts = await Handout.findAll({
+        where: {
+          deliveryman_id,
+          canceled_at: null,
+        },
+        limit: null,
+        order: [['createdAt', 'DESC']],
+        include: [
+          {
+            model: Recipient,
+            as: 'recipient',
+          },
+        ],
+      });
+
+      return res.json(myhandouts);
+    }
 
     const checkHandout = await Handout.findAll({
       where: myWhere,
-      order: [['start_date', 'DESC']],
-      limit: 10,
-      offset: (page - 1) * 10,
+      order: [['createdAt', 'DESC']],
+      limit: show,
+      offset,
       attributes: [
         'id',
         'start_date',
@@ -290,6 +378,10 @@ class HandoutController {
           model: Courier,
           as: 'courier',
           attributes: ['id', 'name', 'email', 'isactive'],
+          include: {
+            model: File,
+            as: 'avatar',
+          },
         },
         {
           model: Recipient,
@@ -308,19 +400,23 @@ class HandoutController {
       ],
     });
 
-    const canceledHandout = checkHandout.filter(
-      item => item.canceled_at !== null
-    );
+    return res.json(checkHandout);
+  }
 
-    const toBeDeliverededHandout = checkHandout
-      .filter(item => item.canceled_at === null)
-      .filter(item => item.date_end === null);
+  async delete(req, res) {
+    const { id } = req.params;
 
-    const finishedHandout = checkHandout.filter(item => item.date_end !== null);
+    const idExists = await Handout.findByPk(id);
 
-    if (canceled) return res.json(canceledHandout);
-    if (finished) return res.json(finishedHandout);
-    return res.json(toBeDeliverededHandout);
+    if (!idExists) {
+      return res.status(400).json({ error: 'The id does not exist' });
+    }
+
+    const handoutDelete = await Handout.destroy({
+      where: { id },
+    });
+
+    return res.json(handoutDelete);
   }
 }
 export default new HandoutController();

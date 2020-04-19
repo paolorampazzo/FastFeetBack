@@ -29,6 +29,10 @@ class Handout extends Model {
       foreignKey: 'recipient_id',
       as: 'recipient',
     });
+    this.belongsTo(models.Signature, {
+      foreignKey: 'signature_id',
+      as: 'signature',
+    });
   }
 }
 

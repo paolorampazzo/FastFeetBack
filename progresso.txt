@@ -236,6 +236,31 @@ Tudo certo.. configurei as variaveis pra passar certinho com os nomes certos
 Criei o model, multerconfig e controller de assinatua e adicionei no index do database
 implantei o limite maximo de 5 no controller de handout
 
+14 commit
+
+Criar tabela delivery_problems
+yarn sequelize migration:create --name=create-delivery-problems
+yarn sequelize db:migrate
+
+
+Criar model Problem
+Criar ProblemController
+Adicionar o model ao database index
+
+
+Criei as rotas todas, inclusive de cancelamento
+
+Criei o email de envio
+testei tudo
+
+
+
+
+
+
+
+
+
 Problemas em aberto
 Terminar o crud de handout
 (o que faco no delete do handoutcontroller ?)

@@ -1,5 +1,7 @@
 import * as Yup from 'yup';
+import { Op } from 'sequelize';
 import Recipient from '../models/Recipient';
+import Handout from '../models/Handout';
 
 class RecipientController {
   async store(req, res) {
@@ -58,23 +60,68 @@ class RecipientController {
   // ser mantidos segundo as espeficicacoes
 
   async index(req, res) {
-    const { page = 1 } = req.query;
+    const { page = 1, name, all = false } = req.query;
+    const maxItems = 5;
 
     // As buscas serao feitas considerando o valor logico E, ou seja,
     // Devera matchar todas os campos de pesquisa
     // Podemos controlar no front quais requisicoes devem ser enviadas em caso de um novo cadastro
 
+    const myWhere = name
+      ? {
+          name: {
+            [Op.iLike]: `%${name}%`,
+          },
+        }
+      : {};
+
+    const show = !all ? maxItems : null;
+    const offset = !all ? (page - 1) * maxItems : 0;
+
     const recipients = await Recipient.findAll({
-      where: {
-        ...req.body,
-      },
-      order: ['updated_at'],
-      limit: 10,
-      offset: (page - 1) * 10,
-      attributes: ['id', 'name', 'rua', 'numero', 'cep', 'complemento'],
+      where: myWhere,
+      order: [['createdAt', 'DESC']],
+      limit: show,
+      offset,
+      attributes: [
+        'id',
+        'name',
+        'rua',
+        'cidade',
+        'numero',
+        'cep',
+        'complemento',
+        'estado',
+      ],
     });
 
     return res.json(recipients);
+  }
+
+  async delete(req, res) {
+    const { id } = req.params;
+
+    const recipientExists = await Recipient.findByPk(id);
+
+    if (!recipientExists) {
+      return res.status(400).json({ error: 'The id does not exist' });
+    }
+
+    const checkHandouts = await Handout.findOne({
+      where: {
+        recipient_id: recipientExists.id,
+      },
+    });
+
+    if (checkHandouts) {
+      return res.status(401).json({ error: 'Nao eh possivel deletar' });
+    }
+
+    const recipientDelete = await Recipient.destroy({
+      where: { id },
+    });
+
+    return res.json(recipientDelete);
   }
 }
 

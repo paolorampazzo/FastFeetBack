@@ -1,0 +1,19 @@
+<img src="{{image}}" alt="FastFeet" /><br><br>
+<strong>Ola, {{ couriername }}</strong>
+<p>Há um novo cancelamento. <br>
+  Confira os detalhes abaixo:</p>
+<p>
+  <strong>Cliente: </strong> {{ recipientname }} <br />
+  <strong>Cidade: </strong> {{ cidade }} - {{estado}} <br />
+  <strong>Endereco: </strong> {{ rua }}, {{numero}} - {{complemento}} <br />
+  <strong>CEP: </strong> {{ cep }} <br />
+  <strong>Data/hora do agendamento: </strong> {{ date }} <br />
+  <strong>Data/hora do cancelamento: </strong> {{ canceled_at }} <br />
+  <strong>Descricao do cancelamento: </strong> {{ description }} <br />
+
+  <br />
+  <small>
+    O horario esta novamente disponivel para novos agendamentos.
+  </small>
+
+</p>

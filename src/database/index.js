@@ -8,8 +8,9 @@ import File from '../app/models/File';
 import Signature from '../app/models/Signature';
 import Courier from '../app/models/Courier';
 import Handout from '../app/models/Handout';
+import Problem from '../app/models/Problem';
 
-const models = [User, Recipient, File, Signature, Courier, Handout];
+const models = [User, Recipient, File, Signature, Courier, Handout, Problem];
 
 class Database {
   constructor() {

@@ -1,6 +1,8 @@
 import * as Yup from 'yup';
 import { Op } from 'sequelize';
 import Courier from '../models/Courier';
+import File from '../models/File';
+import Handout from '../models/Handout';
 
 class CourierController {
   async store(req, res) {
@@ -31,36 +33,21 @@ class CourierController {
   async update(req, res) {
     const schema = Yup.object().shape({
       name: Yup.string(),
-      oldEmail: Yup.string()
-        .email()
-        .required(),
       email: Yup.string().email(),
-      isactive: Yup.boolean(),
     });
 
     if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ error: 'Validation fails' });
     }
 
-    const { oldEmail, email } = req.body;
+    const { id } = req.params;
+    const courier = await Courier.findByPk(id);
 
-    const user = await Courier.findOne({ where: { email: oldEmail } });
-
-    if (!user) {
-      return res.status(400).json({ error: 'User does not exist' });
+    if (!courier) {
+      return res.status(400).json({ error: 'Courier does not exist' });
     }
 
-    if (email) {
-      const userExists = await Courier.findOne({
-        where: { email },
-      });
-      // Testa se o email que ele quer mudar nao ja esta cadastrado por outra pessoa
-      if (userExists) {
-        return res.status(400).json({ error: 'User already exists' });
-      }
-    }
-
-    const data = await user.update(req.body);
+    const data = await courier.update(req.body);
 
     return res.json(data);
   }
@@ -68,11 +55,33 @@ class CourierController {
   async index(req, res) {
     const { page = 1 } = req.query;
 
-    const { name, isactive = true } = req.body;
+    const { id } = req.params;
+
+    if (id) {
+      const checkMobile = await Courier.findByPk(id, {
+        include: [
+          {
+            model: File,
+            as: 'avatar',
+          },
+        ],
+      });
+
+      if (!checkMobile) {
+        return res.status(400).json({ error: 'O usuario nao existe' });
+      }
+
+      return res.status(200).json(checkMobile);
+    }
+    const maxItems = 5;
+
+    const { isactive = true } = req.body;
+
+    const { name, email, all = false } = req.query;
 
     // Fazer chamada api no front-end toda vez que alterar o estado do que esta sendo preenchido
 
-    const myWhere = name
+    let myWhere = name
       ? {
           name: {
             [Op.iLike]: `%${name}%`,
@@ -81,48 +90,54 @@ class CourierController {
         }
       : {};
 
+    myWhere = email ? { ...myWhere, email } : myWhere;
+
+    const show = !all ? maxItems : null;
+    const offset = !all ? (page - 1) * maxItems : 0;
+
     const recipients = await Courier.findAll({
       where: myWhere,
       order: [['updated_at', 'DESC']],
-      limit: 5,
-      offset: (page - 1) * 5,
+      limit: show,
+      offset,
       attributes: ['id', 'name', 'email', 'isactive'],
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+        },
+      ],
     });
 
     return res.json(recipients);
   }
 
   async delete(req, res) {
-    const schema = Yup.object().shape({
-      email: Yup.string()
-        .email()
-        .required(),
-      confirmEmail: Yup.string()
-        .email()
-        .when('email', (email, field) =>
-          email ? field.required().oneOf([Yup.ref('email')]) : field
-        ),
-    });
+    const { id } = req.params;
 
-    if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Validation fails' });
+    const courierExists = await Courier.findByPk(id);
+
+    if (!courierExists) {
+      return res.status(400).json({ error: 'The id does not exist' });
     }
 
-    const { email } = req.body;
-
-    const user = await Courier.findOne({
-      where: { email },
+    const checkHandouts = await Handout.findOne({
+      where: {
+        deliveryman_id: courierExists.id,
+      },
     });
 
-    if (!user) {
-      return res.status(401).json({ error: 'Usuario nao encontrado' });
+    if (checkHandouts) {
+      return res.status(401).json({ error: 'Nao eh possivel deletar' });
     }
 
-    user.isactive = false;
+    // VERIFICACAO POIS O SEQUELIZE EH ALLOWNULL FALSE NO HANDOUT CONTROLLER, COM ISSO, NAO DEIXA DELETAR E NEM JOGA ERRO
 
-    const data = await user.save();
+    const courierDelete = await Courier.destroy({
+      where: { id },
+    });
 
-    return res.json(data);
+    return res.json(courierDelete);
   }
 }
 export default new CourierController();
