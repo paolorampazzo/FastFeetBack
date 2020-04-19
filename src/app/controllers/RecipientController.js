@@ -45,7 +45,9 @@ class RecipientController {
       return res.status(400).json({ error: 'Erro de Validacao' });
     }
 
-    const user = await Recipient.findByPk(req.body.id);
+    const { id } = req.params;
+
+    const user = await Recipient.findByPk(id);
 
     if (!user) {
       res.status(400).json({ error: 'Usuario nao encontrado' });
@@ -62,6 +64,18 @@ class RecipientController {
   async index(req, res) {
     const { page = 1, name, all = false } = req.query;
     const maxItems = 5;
+
+    const { id } = req.params;
+
+    if (id) {
+      const checkRecipient = await Recipient.findByPk(id);
+
+      if (!checkRecipient) {
+        return res.status(400).json({ error: 'O usuario nao existe' });
+      }
+
+      return res.status(200).json(checkRecipient);
+    }
 
     // As buscas serao feitas considerando o valor logico E, ou seja,
     // Devera matchar todas os campos de pesquisa

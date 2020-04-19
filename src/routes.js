@@ -30,7 +30,8 @@ routes.delete('/handouts/:id', HandoutController.delete);
 routes.put('/users', UserController.update);
 
 routes.post('/recipients', RecipientController.store);
-routes.get('/recipients/', RecipientController.index);
+routes.get('/recipients/:id?', RecipientController.index);
+routes.put('/recipients/:id', RecipientController.update);
 routes.delete('/recipients/:id', RecipientController.delete);
 
 routes.post('/couriers/', CourierController.store);
