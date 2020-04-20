@@ -16,6 +16,7 @@ import ProblemController from './app/controllers/ProblemController';
 const routes = new Router();
 const uploadphoto = multer(multerConfigProfile);
 const uploadsignature = multer(multerConfigSignature);
+// const uploadsignature = multer({ destination: 'tmp/signatures/' });
 
 routes.post('/users', UserController.store);
 routes.post('/sessions', SessionController.store);
